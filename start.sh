@@ -3,11 +3,16 @@
 
 . /home/eirsapp/.bash_profile >> /dev/null
 
+main_module="etl_cdr"
+module_name="etl_module"
+process_name="etl_cdr_sql"
+
+
 VAR=""
 script_name="start.sh"
 process_file="application.config"
 sys_ip_file="sys_ip.conf"
-home_path="/u01/eirsapp/etl_module/etl_cdr/"
+home_path="{APP_HOME}/$module_name/$main_module/"
 system_port="22024"
 
 
