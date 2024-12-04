@@ -24,6 +24,9 @@ chmod +x *.sh
 cd ${APP_HOME}/etl_cdr_module/
 chmod +x *.sh 
 
+cd ${APP_HOME}/etl_cdr_module/etl_cdr_sql/
+chmod +x *.sh 
+
 
 
 base="${DATA_HOME}/etl_cdr_module/"
