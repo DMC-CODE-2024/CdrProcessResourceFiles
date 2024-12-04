@@ -22,10 +22,7 @@ ln -sf ${RELEASE_HOME}/global_config/log4j2.xml log4j2.xml
 chmod +x *.sh
 
 cd ${APP_HOME}/etl_cdr_module/
-chmod +x *.sh
-
-cd ${APP_HOME}/etl_cdr_sql/
-chmod +x *.sh
+chmod +x *.sh 
 
 
 
