@@ -108,7 +108,7 @@ do
 
         else
 	  echo "$(date): calling P1_P2 process to start for ${op_names[i]}..." >> ${log_file}
-          ./${p1_p2_process}.sh ${op_names[i]} 1>> ${log_file} 2>> ${log_file} &   ## start process for all (Y) operators in parallel 
+          ./${p1_p2_process}.sh ${op_names[i]} 1>> ${log_file}_${op_names[i]} 2>> ${log_file}_${op_names[i]} &   ## start process for all (Y) operators in parallel 
 
         fi
 
@@ -121,20 +121,20 @@ do
         then
           echo "$(date): ${module_name} process for ${op_names[i]} already running" >> ${log_file}
         else
- 	  echo "$(date): calling P1_P2 process to start for ${op_names[i]}..." >> ${log_file}
-          ./${p1_p2_process}.sh ${op_names[i]} 1>> ${log_file} 2>>${log_file} &  ## start process for all disabed operator in parallel
+ 	  echo "$(date): calling P1_P2 process to start for ${op_names[i]}..." >> ${log_file}_${op_names[i]}
+          ./${p1_p2_process}.sh ${op_names[i]} 1>> ${log_file}_${op_names[i]} 2>>${log_file}_${op_names[i]} &  ## start process for all disabed operator in parallel
 
         fi
       else  ## operator not enabled (N) + current node is VIP running   or  operator enabled (Y) + current node is not VIP running
-        echo "$(date): ${module_name} process is skipped for ${op_names[i]}..." >> ${log_file}
+        echo "$(date): ${module_name} process is skipped for ${op_names[i]}..." >> ${log_file}_${op_names[i]}
       fi
 
     ## ## primary or secondary nodes is down
 
     else
-      echo "$(date): another node is not reachable, thus all operators process will run from this node only..." >> ${log_file}
-      echo "$(date): calling P1_P2 process to start for ${op_names[i]}..." >> ${log_file}
-      ./${p1_p2_process}.sh ${op_names[i]} 1>> ${log_file} 2>>${log_file} &   ## start process p1 for all data source in parallel 
+      echo "$(date): another node is not reachable, thus all operators process will run from this node only..." >> ${log_file}_${op_names[i]}
+      echo "$(date): calling P1_P2 process to start for ${op_names[i]}..." >> ${log_file}_${op_names[i]}
+      ./${p1_p2_process}.sh ${op_names[i]} 1>> ${log_file}_${op_names[i]} 2>>${log_file}_${op_names[i]} &   ## start process p1 for all data source in parallel 
 
     fi
   fi
