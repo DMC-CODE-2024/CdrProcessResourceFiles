@@ -8,30 +8,17 @@ main_module="etl_cdr" #keep it empty "" if there is no main module
 
 ########### DO NOT CHANGE ANY CODE OR TEXT AFTER THIS LINE #########
 
-source $commonTest  2> /dev/null
+source $commonConfigurationFile  2> /dev/null
 
 op_name=$1
 counter=$2
 
-#alertUrl=${eirs.alert.url}
 
 cd ${APP_HOME}/${main_module}_module/${module_name}
-
+#source $commonConfigurationFile   2> /dev/null
 source application.properties 
 
-dbDecryptPassword=$(java -jar ${APP_HOME}/encryption_utility/PasswordDecryptor-0.1.jar dbEncyptPassword)
-
-function generateAlertUsingUrl() 
-{
-  alertId="alert006"
-  alertMessage="Not able to execute sql process for file $1 "
-  alertProcess="$module_name"
-
-  curlOutput=$(curl --header "Content-Type: application/json"   --request POST   --data '{"alertId":"'$alertId'",
-    "alertMessage":"'"$alertMessage"'", "userId": "0", "alertProcess": "'"$alertProcess"'", "serverName": "'"$serverName"'",  "featureName": "etl_cdr"}' "$alertUrl") 
-
-  echo $curlOutput
-}
+dbDecryptPassword=$(java -jar ${pass_dypt} dbEncyptPassword)
 
 
 function get_value() 
@@ -40,9 +27,23 @@ function get_value()
   grep "^$key=" "$commonConfigurationFile" | cut -d'=' -f2
 }
 
-echo "$(date) ${module_name} [${op_name}]-[${counter}]: ==> starting sql process..."   
-
 alertUrl=$(get_value "eirs.alert.url");
+
+function generateAlertUsingUrl() 
+{
+  alertId="alert006"
+  alertMessage="Not able to execute sql process for file $1 "
+  alertProcess="$module_name"
+
+  curlOutput=$(curl --header "Content-Type: application/json"   --request POST   --data '{"alertId":"'$alertId'",
+    "alertMessage":"'"$alertMessage"'", "userId": "0", "alertProcess": "'"$alertProcess"'", "serverName": "'"$serverName"'",  "featureName": "${main_module}"}' "$alertUrl") 
+
+  echo $curlOutput
+}
+
+
+echo "$(date) ${module_name} [${op_name}]-[${counter}]: ==> starting sql process..." 
+
 sql_input_path=${INPUTPATH}/${op_name}/${counter}  ## {INPUTPATH} is defined in app config file
 
 mkdir ${sql_input_path} -p
@@ -67,8 +68,6 @@ else
   do
     file=`cat $file_list | head -$i | tail -1`
 
-    echo "testing..... $file"
-
     if [ "$file" == '' ] 
     then
       echo "$(date) ${module_name} [${op_name}]-[${counter}]: ${file} not found..."
@@ -79,13 +78,11 @@ else
       now1="$(date +%F_%T)"
       realFileName=$(echo $file | sed -e 's/.sql//g')	
 
-      echo "testing realFileName= $realFileName ........."
-
       ## update status to stats table ##
 
-      query="update $appdbName.cdr_file_processed_detail  set modified_on='$now1', status = 'SQL_START' , sql_process_start_time= '$now1' , total_update_sql = '$wordcnt' where FILE_NAME = '$realFileName' ;"
+      query="update ${STATSCHEMA}.cdr_file_processed_detail  set modified_on='$now1', status = 'sql_inprogress' , sql_process_start_time= '$now1' , total_query_sql = '$wordcnt' where FILE_NAME = '$realFileName' ;"
 
-      mysql -h$dbIp -P${dbPort}  ${appdbName} -u${dbUsername}  -p${dbDecryptPassword} <<EOFMYSQL
+      mysql -h$dbIp -P${dbPort}  ${STATSCHEMA} -u${dbUsername}  -p${dbDecryptPassword} <<EOFMYSQL
 
       ${query}       
 
@@ -94,11 +91,11 @@ EOFMYSQL
       #### Start execute sql statement line by line from file #####
 
       echo "$(date) ${module_name} [${op_name}]-[${counter}]: ${realFileName}: start executing the sql script..."
-#      mysql -h$dbIp -P${dbPort} $appdbName -u$dbUsername  -p${dbDecryptPassword} <<EOFMYSQL
+      mysql -h$dbIp -P${dbPort} $STATSCHEMA -u$dbUsername  -p${dbDecryptPassword} <<EOFMYSQL
 
-#      source ${sql_input_path}/${file}
+      source ${sql_input_path}/${file}
 
-#EOFMYSQL
+EOFMYSQL
 
       sql_return_code=$?
 
@@ -118,15 +115,11 @@ EOFMYSQL
     
       #### Update processing state in logs table ####
 
-      echo "sleep 100"
-
-      sleep 100
-
       now2="$(date +%F_%T)"
 
-      query="update $appdbName.cdr_file_processed_detail  set modified_on= '$now2' , status = 'SQL_DONE' , sql_process_start_time= '$now1' , sql_process_end_time = '$now2' , total_query_sql = '$wordcnt' , total_update_sql = '$wordcnt' where FILE_NAME = '$realFileName' ;"
+      query="update ${STATSCHEMA}.cdr_file_processed_detail  set modified_on= '$now2' , status = 'sql_done' , sql_process_start_time= '$now1' , sql_process_end_time = '$now2' , total_query_sql = '$wordcnt' , total_update_sql = '$wordcnt' where FILE_NAME = '$realFileName' ;"
 		
-      mysql -h$dbIp -P${dbPort}  ${appdbName} -u${dbUsername}  -p${dbDecryptPassword} <<EOFMYSQL
+      mysql -h$dbIp -P${dbPort}  ${STATSCHEMA} -u${dbUsername}  -p${dbDecryptPassword} <<EOFMYSQL
 
       ${query}       
 
