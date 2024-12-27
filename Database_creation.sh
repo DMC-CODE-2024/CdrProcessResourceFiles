@@ -344,5 +344,17 @@ insert ignore into app.sys_param (tag , value, feature_name) values ('SMART_SM_P
 insert ignore into app.sys_param (tag , value, feature_name) values ('TEST_IMEI_SERIES ','001,0044','CDR');
 insert ignore into app.sys_param (tag , value, feature_name) values ('IS_USED_EXTENDED_DAYS','365','CDR');
 insert ignore into app.sys_param (tag,value, feature_name) values ('enableForeignSimHandling','True','CDR');
+INSERT IGNORE INTO feature_rule (feature, grace_action, name, post_grace_action, rule_order, user_type, failed_rule_action_grace, failed_rule_action_post_grace, output) VALUES ('CDR', 'Disabled', 'EXISTS_IN_ALL_CDR_ACTIVE_DB', 'Skip', 5, 'default', 'Record', 'Record', 'NO');
+INSERT IGNORE INTO feature_rule (feature, grace_action, name, post_grace_action, rule_order, user_type, failed_rule_action_grace, failed_rule_action_post_grace, output) VALUES ('CDR', 'Disabled', 'IMEI_ALPHANUMERIC', 'Report', 2, 'default', 'Record', 'Record', 'NO');
+INSERT IGNORE INTO feature_rule (feature, grace_action, name, post_grace_action, rule_order, user_type, failed_rule_action_grace, failed_rule_action_post_grace, output) VALUES ('CDR', 'Disabled', 'IMEI_LENGTH', 'Report', 3, 'default', 'Record', 'Record', 'Yes');
+INSERT IGNORE INTO feature_rule (feature, grace_action, name, post_grace_action, rule_order, user_type, failed_rule_action_grace, failed_rule_action_post_grace, output) VALUES ('CDR', 'Disabled', 'IMEI_NULL', 'Report', 1, 'default', 'Record', 'Record', 'No');
+ INSERT IGNORE INTO feature_rule (feature, grace_action, name, post_grace_action, rule_order, user_type, failed_rule_action_grace, failed_rule_action_post_grace, output) VALUES ('CDR', 'Disabled', 'MDR', 'Report', 4, 'default', 'Record', 'Record', 'Yes');
+   
+INSERT IGNORE INTO rule (name, output, state) VALUES ('EXISTS_IN_ALL_CDR_ACTIVE_DB', 'No', 'Enabled');
+INSERT IGNORE INTO rule (name, output, state) VALUES ('IMEI_ALPHANUMERIC', 'No', 'Enabled');
+INSERT IGNORE INTO rule (name, output, state) VALUES ('IMEI_LENGTH', 'No', 'Enabled');
+INSERT IGNORE INTO rule (name, output, state) VALUES ('IMEI_NULL', 'No', 'Enabled');
+INSERT IGNORE INTO rule (name, output, state) VALUES ('MDR', 'No', 'Enabled');
+
 
 EOFMYSQL
