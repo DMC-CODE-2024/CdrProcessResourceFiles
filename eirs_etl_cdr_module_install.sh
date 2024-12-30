@@ -2,7 +2,7 @@
 set -x
 conffile=/u01/eirsapp/configuration/configuration.properties
 
-tar -xzvf etl_cdr_1.0.0.tar.gz >>etl_cdr_1.0.0_untar_log.txt
+tar -xzvf etl_cdr_module_1.0.0.tar.gz >>etl_cdr_1.0.0_untar_log.txt
 mkdir -p ${APP_HOME}/etl_cdr_module/
 
 mv etl_cdr_1.0.0/etl_cdr_p1_p2/etl_cdr_p1_p2_1.0.0.jar ${RELEASE_HOME}/binary/
