@@ -1,9 +1,10 @@
-#!/bin/bash 
+
+#!/bin/bash
 
 #set -x
 
 module_name="etl_cdr_sql"
-main_module="etl_cdr" #keep it empty "" if there is no main module 
+main_module="etl_cdr" #keep it empty "" if there is no main module
 #log_level="INFO" # INFO, DEBUG, ERROR
 
 ########### DO NOT CHANGE ANY CODE OR TEXT AFTER THIS LINE #########
@@ -16,12 +17,12 @@ counter=$2
 
 cd ${APP_HOME}/${main_module}_module/${module_name}
 #source $commonConfigurationFile   2> /dev/null
-source application.properties 
+source application.properties
 
 dbDecryptPassword=$(java -jar ${pass_dypt} dbEncyptPassword)
 
 
-function get_value() 
+function get_value()
 {
   key=$1
   grep "^$key=" "$commonConfigurationFile" | cut -d'=' -f2
@@ -29,20 +30,20 @@ function get_value()
 
 alertUrl=$(get_value "eirs.alert.url");
 
-function generateAlertUsingUrl() 
+function generateAlertUsingUrl()
 {
   alertId="alert006"
   alertMessage="Not able to execute sql process for file $1 "
   alertProcess="$module_name"
 
   curlOutput=$(curl --header "Content-Type: application/json"   --request POST   --data '{"alertId":"'$alertId'",
-    "alertMessage":"'"$alertMessage"'", "userId": "0", "alertProcess": "'"$alertProcess"'", "serverName": "'"$serverName"'",  "featureName": "${main_module}"}' "$alertUrl") 
+    "alertMessage":"'"$alertMessage"'", "userId": "0", "alertProcess": "'"$alertProcess"'", "serverName": "'"$serverName"'",  "featureName": "${main_module}"}' "$alertUrl")
 
   echo $curlOutput
 }
 
 
-echo "$(date) ${module_name} [${op_name}]-[${counter}]: ==> starting sql process..." 
+echo "$(date) ${module_name} [${op_name}]-[${counter}]: ==> starting sql process..."
 
 sql_input_path=${INPUTPATH}/${op_name}/${counter}  ## {INPUTPATH} is defined in app config file
 
@@ -68,7 +69,7 @@ else
   do
     file=`cat $file_list | head -$i | tail -1`
 
-    if [ "$file" == '' ] 
+    if [ "$file" == '' ]
     then
       echo "$(date) ${module_name} [${op_name}]-[${counter}]: ${file} not found..."
 
@@ -76,7 +77,7 @@ else
       repdate=$(date +"%Y_%m_%d_%F_%T")
       wordcnt=`cat ${file} | wc -l`
       now1="$(date +%F_%T)"
-      realFileName=$(echo $file | sed -e 's/.sql//g')	
+      realFileName=$(echo $file | sed -e 's/.sql//g')
 
       ## update status to stats table ##
 
@@ -84,7 +85,7 @@ else
 
       mysql -h$dbIp -P${dbPort}  ${STATSCHEMA} -u${dbUsername}  -p${dbDecryptPassword} <<EOFMYSQL
 
-      ${query}       
+      ${query}
 
 EOFMYSQL
 
@@ -108,25 +109,25 @@ EOFMYSQL
         rm ${sql_input_path}/$file_list
         exit 0
 
-      else 
+      else
         echo "$(date) ${module_name} [${op_name}]-[${counter}]: ${realFileName}: all script are executed successfully... "
 
       fi
-    
+
       #### Update processing state in logs table ####
 
       now2="$(date +%F_%T)"
 
       query="update ${STATSCHEMA}.cdr_file_processed_detail  set modified_on= '$now2' , status = 'sql_done' , sql_process_start_time= '$now1' , sql_process_end_time = '$now2' , total_query_sql = '$wordcnt' , total_update_sql = '$wordcnt' where FILE_NAME = '$realFileName' ;"
-		
+
       mysql -h$dbIp -P${dbPort}  ${STATSCHEMA} -u${dbUsername}  -p${dbDecryptPassword} <<EOFMYSQL
 
-      ${query}       
+      ${query}
 
 EOFMYSQL
 
       echo "$(date) ${module_name} [${op_name}]-[${counter}]: ${realFileName}: successfully updated status in cdr_file_processed_detail table... start_time='$now1' , end_time='$now2' , total_sql_script='$wordcnt' "
-    
+
       sql_processed_path=${PROCESSEDPATH}/${op_name}/${counter}  ## {PROCESSEDPATH} is defined in app config file
 
       mkdir ${sql_processed_path} -p
